@@ -137,8 +137,6 @@ class LetterSegmenter implements ISegmenter {
 	 * @return
 	 */
 	private boolean processMixLetter(AnalyzeContext context){
-		boolean needLock = false;
-
 		if(this.start == -1){//当前的分词器尚未开始处理字符
 			if(CharacterUtil.CHAR_ARABIC == context.getCurrentCharType()
 					|| CharacterUtil.CHAR_ENGLISH == context.getCurrentCharType()){
@@ -187,13 +185,7 @@ class LetterSegmenter implements ISegmenter {
 		}
 
 		//判断是否锁定缓冲区
-		if(this.start == -1 && this.end == -1){
-			//对缓冲区解锁
-			needLock = false;
-		}else{
-			needLock = true;
-		}
-		return needLock;
+        return !(this.start == -1 && this.end == -1);
 	}
 
 	/**
@@ -202,8 +194,6 @@ class LetterSegmenter implements ISegmenter {
 	 * @return
 	 */
 	private boolean processEnglishLetter(AnalyzeContext context){
-		boolean needLock = false;
-
 		if(this.englishStart == -1){//当前的分词器尚未开始处理英文字符
 			if(CharacterUtil.CHAR_ENGLISH == context.getCurrentCharType()){
 				//记录起始指针的位置,标明分词器进入处理状态
@@ -217,7 +207,7 @@ class LetterSegmenter implements ISegmenter {
                 boolean isUpper = Character.isUpperCase(context.getCurrentCharIrregular());
                 if(isUpper && !this.englishIsUpper){//前一个字符是小写，当前字符是大写，则分词
                     needAdd = true;
-                }else if(isUpper && this.englishIsUpper){//前一个是大写，当前的也是大写，则需要获取下一个字符才能判断是否应该分词
+                }else if(isUpper){//前一个是大写，当前的也是大写，则需要获取下一个字符才能判断是否应该分词
                     //尝试后移一个指针
                     if(context.moveCursor()){
                         if(CharacterUtil.CHAR_ENGLISH == context.getCurrentCharType()){
@@ -261,13 +251,7 @@ class LetterSegmenter implements ISegmenter {
 		}
 
 		//判断是否锁定缓冲区
-		if(this.englishStart == -1 && this.englishEnd == -1){
-			//对缓冲区解锁
-			needLock = false;
-		}else{
-			needLock = true;
-		}
-		return needLock;
+        return !(this.englishStart == -1 && this.englishEnd == -1);
 	}
 
 	/**
@@ -276,8 +260,6 @@ class LetterSegmenter implements ISegmenter {
 	 * @return
 	 */
 	private boolean processArabicLetter(AnalyzeContext context){
-		boolean needLock = false;
-
 		if(this.arabicStart == -1){//当前的分词器尚未开始处理数字字符
 			if(CharacterUtil.CHAR_ARABIC == context.getCurrentCharType()){
 				//记录起始指针的位置,标明分词器进入处理状态
@@ -312,13 +294,7 @@ class LetterSegmenter implements ISegmenter {
 		}
 
 		//判断是否锁定缓冲区
-		if(this.arabicStart == -1 && this.arabicEnd == -1){
-			//对缓冲区解锁
-			needLock = false;
-		}else{
-			needLock = true;
-		}
-		return needLock;
+        return !(this.arabicStart == -1 && this.arabicEnd == -1);
 	}
 
 	/**
