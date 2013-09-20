@@ -24,7 +24,9 @@
  */
 package org.wltea.analyzer.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -54,7 +56,7 @@ class LetterSegmenter implements ISegmenter {
     /*
      * 是否是混合式词元
      */
-    private boolean isMixed = false;
+    private boolean isMixed;
     /*
      * 词元标志
      */
@@ -74,6 +76,7 @@ class LetterSegmenter implements ISegmenter {
      * 前一个字符的大小写
      */
     private boolean englishIsUpper;
+    private List<Lexeme> englishLexemeList;
 
 	/*
 	 * 阿拉伯数字起始位置
@@ -90,8 +93,11 @@ class LetterSegmenter implements ISegmenter {
 		Arrays.sort(Num_Connector);
 		this.start = -1;
 		this.end = -1;
+        this.isMixed = false;
 		this.englishStart = -1;
 		this.englishEnd = -1;
+        this.englishIsUpper = false;
+        this.englishLexemeList = new ArrayList<Lexeme>();
 		this.arabicStart = -1;
 		this.arabicEnd = -1;
 	}
@@ -200,6 +206,7 @@ class LetterSegmenter implements ISegmenter {
 				this.englishStart = context.getCursor();
 				this.englishEnd = this.englishStart;
                 this.englishIsUpper = Character.isUpperCase(context.getCurrentCharIrregular());
+                this.englishLexemeList.clear();
 			}
 		}else {//当前的分词器正在处理英文字符
 			if(CharacterUtil.CHAR_ENGLISH == context.getCurrentCharType()){
@@ -223,6 +230,12 @@ class LetterSegmenter implements ISegmenter {
                     //需要输出词元
                     Lexeme newLexeme = new Lexeme(context.getBufferOffset() , this.englishStart , this.englishEnd - this.englishStart + 1 , Lexeme.TYPE_ENGLISH);
                     context.addLexeme(newLexeme);
+                    //组合之前的词元
+                    for(Lexeme l : this.englishLexemeList){
+                        Lexeme _newLexeme = new Lexeme(context.getBufferOffset() , l.getBegin() , this.englishEnd - l.getBegin() + 1 , Lexeme.TYPE_ENGLISH);
+                        context.addLexeme(_newLexeme);
+                    }
+                    this.englishLexemeList.add(newLexeme);
                     this.englishStart = context.getCursor(); //不丢弃当前该字符
                     this.englishEnd= this.englishStart;
                 }else{
@@ -233,6 +246,12 @@ class LetterSegmenter implements ISegmenter {
                 //需要输出词元
                 Lexeme newLexeme = new Lexeme(context.getBufferOffset() , this.englishStart , this.englishEnd - this.englishStart + 1 , Lexeme.TYPE_ENGLISH);
                 context.addLexeme(newLexeme);
+                //组合之前的词元
+                for(Lexeme l : this.englishLexemeList){
+                    Lexeme _newLexeme = new Lexeme(context.getBufferOffset() , l.getBegin() , this.englishEnd - l.getBegin() + 1 , Lexeme.TYPE_ENGLISH);
+                    context.addLexeme(_newLexeme);
+                }
+                this.englishLexemeList.clear();
                 this.englishStart = -1;
                 this.englishEnd= -1;
 			}
@@ -245,6 +264,12 @@ class LetterSegmenter implements ISegmenter {
 				//缓冲以读完，输出词元
 				Lexeme newLexeme = new Lexeme(context.getBufferOffset() , this.englishStart , this.englishEnd - this.englishStart + 1 , Lexeme.TYPE_ENGLISH);
 				context.addLexeme(newLexeme);
+				//组合之前的词元
+                for(Lexeme l : this.englishLexemeList){
+                    Lexeme _newLexeme = new Lexeme(context.getBufferOffset() , l.getBegin() , this.englishEnd - l.getBegin() + 1 , Lexeme.TYPE_ENGLISH);
+                    context.addLexeme(_newLexeme);
+                }
+                this.englishLexemeList.clear();
 				this.englishStart = -1;
 				this.englishEnd= -1;
 			}
