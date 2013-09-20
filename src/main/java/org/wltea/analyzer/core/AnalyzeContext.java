@@ -50,6 +50,8 @@ class AnalyzeContext {
  
 	//字符窜读取缓冲
     private char[] segmentBuff;
+    //没有经过规格化的字符窜读取缓冲
+    private char[] segmentBuffIrregular;
     //字符类型数组
     private int[] charTypes;
     
@@ -80,6 +82,7 @@ class AnalyzeContext {
     public AnalyzeContext(Configuration cfg){
     	this.cfg = cfg;
     	this.segmentBuff = new char[BUFF_SIZE];
+        this.segmentBuffIrregular = new char[BUFF_SIZE];
     	this.charTypes = new int[BUFF_SIZE];
     	this.buffLocker = new HashSet<String>();
     	this.orgLexemes = new QuickSortSet();
@@ -98,9 +101,17 @@ class AnalyzeContext {
     char[] getSegmentBuff(){
     	return this.segmentBuff;
     }
+
+    char[] getSegmentBuffIrregular(){
+        return this.segmentBuffIrregular;
+    }
     
     char getCurrentChar(){
     	return this.segmentBuff[this.cursor];
+    }
+
+    char getCurrentCharIrregular(){
+        return this.segmentBuffIrregular[this.cursor];
     }
     
     int getCurrentCharType(){
@@ -122,15 +133,19 @@ class AnalyzeContext {
     	if(this.buffOffset == 0){
     		//首次读取reader
     		readCount = reader.read(segmentBuff);
+            System.arraycopy(this.segmentBuff , 0 , this.segmentBuffIrregular , 0 , readCount);
     	}else{
     		int offset = this.available - this.cursor;
     		if(offset > 0){
     			//最近一次读取的>最近一次处理的，将未处理的字串拷贝到segmentBuff头部
     			System.arraycopy(this.segmentBuff , this.cursor , this.segmentBuff , 0 , offset);
+                System.arraycopy(this.segmentBuffIrregular , this.cursor , this.segmentBuffIrregular , 0 , offset);
     			readCount = offset;
     		}
     		//继续读取reader ，以onceReadIn - onceAnalyzed为起始位置，继续填充segmentBuff剩余的部分
     		readCount += reader.read(this.segmentBuff , offset , BUFF_SIZE - offset);
+            System.arraycopy(this.segmentBuff , offset , this.segmentBuffIrregular , offset , BUFF_SIZE - offset);
+
     	}            	
     	//记录最后一次从Reader中读入的可用字符长度
     	this.available = readCount;
@@ -162,6 +177,18 @@ class AnalyzeContext {
     	}else{
     		return false;
     	}
+    }
+
+     /**
+     * 指针-1
+     */
+    boolean fallBackCursor(){
+        if(this.cursor > 0){
+            this.cursor--;
+            return true;
+        }else{
+            return false;
+        }
     }
 	
     /**
