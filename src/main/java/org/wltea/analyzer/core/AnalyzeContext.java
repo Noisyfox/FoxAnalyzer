@@ -133,7 +133,7 @@ class AnalyzeContext {
     	if(this.buffOffset == 0){
     		//首次读取reader
     		readCount = reader.read(segmentBuff);
-            System.arraycopy(this.segmentBuff , 0 , this.segmentBuffIrregular , 0 , readCount);
+            System.arraycopy(this.segmentBuff , 0 , this.segmentBuffIrregular , 0 , segmentBuff.length);
     	}else{
     		int offset = this.available - this.cursor;
     		if(offset > 0){
